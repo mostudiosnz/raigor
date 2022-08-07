@@ -1,7 +1,7 @@
 import XCTest
-@testable import MOFirebaseLogger
+@testable import Raigor
 
-final class MOFirebaseLoggerTests: XCTestCase {
+final class LoggerTests: XCTestCase {
     func testExample() throws {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct
