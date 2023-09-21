@@ -1,6 +1,7 @@
 import FirebaseCrashlytics
 import Foundation
 import os
+import RegexBuilder
 
 public protocol Logger {
     static var shared: Logger { get }
@@ -30,14 +31,20 @@ public struct AppLogger: Logger {
         fbLogger.record(error: error, userInfo: createUserInfo()) // stored as a non-fatal issue
     }
     func createUserInfo() -> [String: Any] {
-        return [:]
-//        guard #available(iOS 16.0, *) else { return [:] }
-//        let regex = /(\d+[ ]+\w+)[ ]+(.+)/
-//        return Thread.callStackSymbols
-//            .compactMap { try? regex.wholeMatch(in: $0) }
-//            .reduce([:] as [String: Any], { dict, result in
-//                dict.merging([String(result.1): result.2 as Any], uniquingKeysWith: { (_, new) in new })
-//            })
+        guard #available(iOS 16.0, *) else { return [:] }
+        let regex = Regex {
+            Capture({ OneOrMore(.digit) }, transform: { Int($0) ?? -1 })
+            OneOrMore(.whitespace)
+            Capture{ OneOrMore(.word) }
+            OneOrMore(.whitespace)
+            Capture{ OneOrMore(.anyNonNewline) }
+        }
+        return Thread.callStackSymbols.compactMap { try? regex.firstMatch(in: $0) }
+            .reduce([:] as [String: Any], { dict, result in
+                let key = "\(result.1) \(result.2)"
+                let value = "\(result.3)"
+                return dict.merging([key: value as Any], uniquingKeysWith: { $1 })
+            })
     }
 }
 
