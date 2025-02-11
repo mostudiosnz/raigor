@@ -19,7 +19,7 @@ public protocol Logger {
 
 public actor DefaultLogger: Logger {
     private let osLogger: os.Logger
-    init(
+    public init(
         bundle: Bundle = .main,
         fallbackSubsystem: String = "AppLogger",
         category: String = "Application"
