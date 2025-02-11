@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -19,14 +19,16 @@ let package = Package(
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        .package(url: "https://github.com/firebase/firebase-ios-sdk", from: Version(10, 28, 0)),
+        .package(url: "https://github.com/firebase/firebase-ios-sdk", from: Version(11, 8, 1)),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "Raigor",
-            dependencies: [.product(name: "FirebaseCrashlytics", package: "firebase-ios-sdk", condition: .when(platforms: [.iOS]))]),
+            dependencies: [.product(name: "FirebaseCrashlytics", package: "firebase-ios-sdk")],
+            swiftSettings: [.swiftLanguageMode(.v6), .enableUpcomingFeature("SWIFT_STRICT_CONCURRENCY")]
+        ),
         .testTarget(
             name: "RaigorTests",
             dependencies: ["Raigor"]),

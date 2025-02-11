@@ -8,7 +8,7 @@ Use Swift Package Manager to install.
 
 ## Usage
 
-A Singleton `Logger` object is provided. The logger will automatically upload logs to firebase crashlytics. 
+A property wrapper `AppLogger` is provided. The logger will automatically upload logs to firebase crashlytics. 
 
 `Logger.log(...)` is stored as a log inside a crashlytics issue.
 
