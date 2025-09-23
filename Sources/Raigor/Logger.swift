@@ -4,7 +4,7 @@ import os
 import RegexBuilder
 import SwiftUI
 
-public protocol Logger {
+public protocol Logger: Sendable {
     func log(_ log: String)
     func error(_ error: Error)
 }
