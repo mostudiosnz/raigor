@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "Raigor",
     platforms: [
-        .iOS(.v14),
+        .iOS(.v15),
         .macOS(.v11),
         .watchOS(.v7),
         .tvOS(.v14)
