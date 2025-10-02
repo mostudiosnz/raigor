@@ -5,10 +5,17 @@ import RegexBuilder
 import SwiftUI
 
 public protocol Logger: Sendable {
-    func log(_ log: String)
-    func log_public(_ log: String)
-    func error(_ error: Error)
-    func error_public(_ error: Error)
+    func log(_ log: String, public: Bool)
+    func error(_ error: Error, public: Bool)
+}
+
+public extension Logger {
+    func log(_ log: String) {
+        self.log(log, public: false)
+    }
+    func error(_ error: Error) {
+        self.error(error, public: false)
+    }
 }
 
 @propertyWrapper public struct AppLogger: DynamicProperty {
@@ -37,20 +44,20 @@ public actor DefaultLogger: Logger {
         osLogger = os.Logger(subsystem: subsystem, category: category)
         fbLogger = crashlytics
     }
-    nonisolated public func log(_ log: String) {
-        osLogger.log("\(log)")
+    nonisolated public func log(_ log: String, public: Bool) {
+        if `public` {
+            osLogger.log("\(log, privacy: .public)")
+        } else {
+            osLogger.log("\(log)")
+        }
         fbLogger.log(log)
     }
-    nonisolated public func log_public(_ log: String) {
-        osLogger.log("\(log)")
-        fbLogger.log(log)
-    }
-    nonisolated public func error(_ error: Error) {
-        osLogger.error("\(error.description, privacy: .public)")
-        fbLogger.record(error: error, userInfo: createUserInfo())
-    }
-    nonisolated public func error_public(_ error: any Error) {
-        osLogger.error("\(error.description, privacy: .public)")
+    nonisolated public func error(_ error: Error, public: Bool) {
+        if `public` {
+            osLogger.error("\(error.description, privacy: .public)")
+        } else {
+            osLogger.error("\(error.description)")
+        }
         fbLogger.record(error: error, userInfo: createUserInfo())
     }
     nonisolated func createUserInfo() -> [String: Any] {
