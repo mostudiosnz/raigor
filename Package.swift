@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.2
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -15,7 +15,10 @@ let package = Package(
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
             name: "Raigor",
-            targets: ["Raigor"]),
+            targets: [
+                "Raigor",
+            ]
+        ),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -26,11 +29,21 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "Raigor",
-            dependencies: [.product(name: "FirebaseCrashlytics", package: "firebase-ios-sdk")],
-            swiftSettings: [.swiftLanguageMode(.v6), .enableUpcomingFeature("SWIFT_STRICT_CONCURRENCY")]
+            dependencies: [
+                .product(name: "FirebaseCrashlytics", package: "firebase-ios-sdk"),
+            ],
+            swiftSettings: [
+                .swiftLanguageMode(.v6),
+                .enableUpcomingFeature("SWIFT_STRICT_CONCURRENCY"),
+                .enableUpcomingFeature("ApproachableConcurrency"),
+                .define("DEBUG", .when(configuration: .debug)),
+            ]
         ),
         .testTarget(
             name: "RaigorTests",
-            dependencies: ["Raigor"]),
+            dependencies: [
+                "Raigor",
+            ]
+        ),
     ]
 )
