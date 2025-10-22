@@ -12,7 +12,7 @@ public protocol Logger: Sendable {
 
 protocol TDLogger {
     init(
-        appID: String,
+        enabled: Bool,
         bundle: Bundle,
         fallbackSubsystem: String,
     )
@@ -23,20 +23,18 @@ protocol TDLogger {
 struct TDLoggerAdapter: TDLogger {
     private let logSignalName: String
     private let errorSignalName: String
-    private let initialized: Bool
+    private let enabled: Bool
     init(
-        appID: String,
+        enabled tdEnabled: Bool = true,
         bundle: Bundle = .main,
         fallbackSubsystem: String = "AppLogger",
     ) {
         logSignalName = "log_\(bundle.bundleIdentifier ?? fallbackSubsystem)"
         errorSignalName = "error_\(bundle.bundleIdentifier ?? fallbackSubsystem)"
-        initialized = !appID.isEmpty
-        guard !appID.isEmpty else { return }
-        TelemetryDeck.initialize(config: TelemetryDeck.Config(appID: appID))
+        enabled = tdEnabled
     }
     func log(_ log: String) {
-        guard initialized else { return }
+        guard enabled else { return }
         TelemetryDeck.signal(
             logSignalName,
             parameters: ["message": log],
@@ -45,7 +43,7 @@ struct TDLoggerAdapter: TDLogger {
         )
     }
     func error(_ error: any Error, userInfo: [String: String]) {
-        guard initialized else { return }
+        guard enabled else { return }
         TelemetryDeck.errorOccurred(
             id: errorSignalName,
             category: nil,
@@ -71,11 +69,11 @@ public actor DefaultLogger: Logger {
         fallbackSubsystem: String = "AppLogger",
         category: String = "Application",
         crashlytics: Crashlytics = .crashlytics(),
-        telemetryDeckKey: String = "",
+        telemetryDeckEnabled tdEnabled: Bool = true,
     ) {
         osLogger = os.Logger(subsystem: bundle.bundleIdentifier ?? fallbackSubsystem, category: category)
         fbLogger = crashlytics
-        tdLogger = TDLoggerAdapter(appID: telemetryDeckKey)
+        tdLogger = TDLoggerAdapter(enabled: tdEnabled)
     }
     nonisolated public func log(_ log: String) {
         #if DEBUG
