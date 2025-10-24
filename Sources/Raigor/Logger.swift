@@ -60,7 +60,7 @@ extension Crashlytics: @unchecked @retroactive Sendable {}
 /**
  Logs to both `os.Logger` and `Crashlytics`
  */
-public actor DefaultLogger: Logger {
+public struct AppLogger: Logger {
     private let osLogger: os.Logger
     private let fbLogger: Crashlytics
     private let tdLogger: TDLoggerAdapter
