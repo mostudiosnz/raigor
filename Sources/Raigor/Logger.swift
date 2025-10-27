@@ -3,59 +3,47 @@ import Foundation
 import os
 import RegexBuilder
 import SwiftUI
-import TelemetryDeck
+import Mixpanel
 
 public protocol Logger: Sendable {
     func log(_ log: String)
     func error(_ error: Error)
 }
 
-protocol TDLogger {
-    init(
-        enabled: Bool,
-        bundle: Bundle,
-        fallbackSubsystem: String,
-    )
+protocol MPLogger: Sendable {
     func log(_ log: String)
     func error(_ error: Error, userInfo: [String: String])
 }
 
-struct TDLoggerAdapter: TDLogger {
-    private let logSignalName: String
-    private let errorSignalName: String
+struct MPLoggerAdapter: MPLogger {
+    private let logEventName: String
+    private let errorEventName: String
     private let enabled: Bool
+    private let instance: MixpanelInstance?
     init(
-        enabled tdEnabled: Bool = true,
+        enabled mpEnabled: Bool = true,
         bundle: Bundle = .main,
         fallbackSubsystem: String = "AppLogger",
+        mixpanelInstance: MixpanelInstance? = Mixpanel.safeMainInstance(),
     ) {
-        logSignalName = "log_\(bundle.bundleIdentifier ?? fallbackSubsystem)"
-        errorSignalName = "error_\(bundle.bundleIdentifier ?? fallbackSubsystem)"
-        enabled = tdEnabled
+        logEventName = "log.\(bundle.bundleIdentifier ?? fallbackSubsystem)"
+        errorEventName = "error.\(bundle.bundleIdentifier ?? fallbackSubsystem)"
+        enabled = mpEnabled
+        instance = mixpanelInstance
     }
     func log(_ log: String) {
         guard enabled else { return }
-        TelemetryDeck.signal(
-            logSignalName,
-            parameters: ["message": log],
-            floatValue: nil,
-            customUserID: nil,
-        )
+        instance?.track(event: logEventName, properties: ["message": log])
     }
     func error(_ error: any Error, userInfo: [String: String]) {
         guard enabled else { return }
-        TelemetryDeck.errorOccurred(
-            id: errorSignalName,
-            category: nil,
-            message: error.description,
-            parameters: userInfo,
-            floatValue: nil,
-            customUserID: nil,
-        )
+        let properties = userInfo.merging(["error": error.description], uniquingKeysWith: { _, new in new })
+        instance?.track(event: errorEventName, properties: properties)
     }
 }
 
 extension Crashlytics: @unchecked @retroactive Sendable {}
+extension MixpanelInstance: @unchecked @retroactive Sendable {}
 
 /**
  Logs to both `os.Logger` and `Crashlytics`
@@ -63,17 +51,17 @@ extension Crashlytics: @unchecked @retroactive Sendable {}
 public struct AppLogger: Logger {
     private let osLogger: os.Logger
     private let fbLogger: Crashlytics
-    private let tdLogger: TDLoggerAdapter
+    private let mpLogger: MPLogger
     public init(
         bundle: Bundle = .main,
         fallbackSubsystem: String = "AppLogger",
         category: String = "Application",
         crashlytics: Crashlytics = .crashlytics(),
-        telemetryDeckEnabled tdEnabled: Bool = true,
+        mixpanelEnabled mpEnabled: Bool = true,
     ) {
         osLogger = os.Logger(subsystem: bundle.bundleIdentifier ?? fallbackSubsystem, category: category)
         fbLogger = crashlytics
-        tdLogger = TDLoggerAdapter(enabled: tdEnabled)
+        mpLogger = MPLoggerAdapter(enabled: mpEnabled)
     }
     nonisolated public func log(_ log: String) {
         #if DEBUG
@@ -82,7 +70,7 @@ public struct AppLogger: Logger {
         osLogger.log("\(log)")
         #endif
         fbLogger.log(log)
-        tdLogger.log(log)
+        mpLogger.log(log)
     }
     nonisolated public func error(_ error: Error) {
         #if DEBUG
@@ -92,7 +80,7 @@ public struct AppLogger: Logger {
         #endif
         let callStack = createCallStackSymbols()
         fbLogger.record(error: error, userInfo: callStack)
-        tdLogger.error(error, userInfo: callStack)
+        mpLogger.error(error, userInfo: callStack)
     }
     nonisolated func createCallStackSymbols() -> [String: String] {
         guard #available(iOS 16.0, macOS 13.0, *) else { return [:] }
