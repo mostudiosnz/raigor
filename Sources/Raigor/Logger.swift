@@ -16,27 +16,30 @@ protocol MPLogger: Sendable {
 }
 
 struct MPLoggerAdapter: MPLogger {
+    private let logEnabled: Bool
+    private let errorEnabled: Bool
     private let logEventName: String
     private let errorEventName: String
-    private let enabled: Bool
     private let instance: MixpanelInstance?
     init(
-        enabled mpEnabled: Bool = true,
+        logEnabled log: Bool = false,
+        errorEnabled error: Bool = true,
         bundle: Bundle = .main,
         fallbackSubsystem: String = "AppLogger",
         mixpanelInstance: MixpanelInstance? = Mixpanel.safeMainInstance(),
     ) {
+        logEnabled = log
+        errorEnabled = error
         logEventName = "log.\(bundle.bundleIdentifier ?? fallbackSubsystem)"
         errorEventName = "error.\(bundle.bundleIdentifier ?? fallbackSubsystem)"
-        enabled = mpEnabled
         instance = mixpanelInstance
     }
     func log(_ log: String) {
-        guard enabled else { return }
+        guard logEnabled else { return }
         instance?.track(event: logEventName, properties: ["message": log])
     }
     func error(_ error: any Error, userInfo: [String: String]) {
-        guard enabled else { return }
+        guard errorEnabled else { return }
         let properties = userInfo.merging(["error": error.description], uniquingKeysWith: { _, new in new })
         instance?.track(event: errorEventName, properties: properties)
     }
@@ -57,11 +60,15 @@ public struct AppLogger: Logger {
         fallbackSubsystem: String = "AppLogger",
         category: String = "Application",
         crashlytics: Crashlytics = .crashlytics(),
-        mixpanelEnabled mpEnabled: Bool = true,
+        logToMixpanel mpLogEnabled: Bool = false,
+        errorToMixpanel mpErrorEnabled: Bool = true,
     ) {
         osLogger = os.Logger(subsystem: bundle.bundleIdentifier ?? fallbackSubsystem, category: category)
         fbLogger = crashlytics
-        mpLogger = MPLoggerAdapter(enabled: mpEnabled)
+        mpLogger = MPLoggerAdapter(
+            logEnabled: mpLogEnabled,
+            errorEnabled: mpErrorEnabled,
+        )
     }
     nonisolated public func log(_ log: String) {
         #if DEBUG
