@@ -1,10 +1,12 @@
 # Raigor
 
-A wrapper around [FirebaseAnalytics](https://github.com/firebase/firebase-ios-sdk) and [TelemetryDeck](https://github.com/TelemetryDeck/SwiftSDK)  for logging used throughout MO Studios iOS projects.
+A wrapper around OSLog, [Firebase Crashlytics](https://github.com/firebase/firebase-ios-sdk), and [Mixpanel](https://github.com/mixpanel/mixpanel-swift) for logging used throughout MO Studios iOS projects.
 
 ## Install
 
-Use Swift Package Manager to install.
+Use Swift Package Manager to install. Requires Xcode 26.2 or later (Swift 6.2.3+), iOS 15+, macOS 11+, tvOS 15+, or watchOS 8+.
+
+Firebase is pinned to 13.1.1. Mixpanel is pinned to 6.8.0 to retain macOS 11 and watchOS 8 support; Mixpanel 7 requires macOS 12 and watchOS 9.
 
 ## Usage
 

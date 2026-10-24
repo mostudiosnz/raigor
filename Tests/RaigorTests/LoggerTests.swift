@@ -1,11 +1,16 @@
 import XCTest
+
 @testable import Raigor
 
 final class LoggerTests: XCTestCase {
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
-        XCTAssertNotNil(AppLogger.shared)
-    }
+  func testMixpanelLoggingWithoutInitializedInstance() {
+    let logger = MPLoggerAdapter(
+      logEnabled: true,
+      errorEnabled: true,
+      mixpanelInstance: nil
+    )
+
+    logger.log("Test message")
+    logger.error(NSError(domain: "RaigorTests", code: 1), userInfo: ["context": "test"])
+  }
 }
