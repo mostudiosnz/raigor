@@ -23,7 +23,7 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         .package(url: "https://github.com/firebase/firebase-ios-sdk", exact: Version(13, 1, 1)),
-        .package(url: "https://github.com/mixpanel/mixpanel-swift.git", exact: Version(6, 8, 0)),
+        .package(url: "https://github.com/mixpanel/mixpanel-swift.git", exact: Version(7, 0, 0)),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
